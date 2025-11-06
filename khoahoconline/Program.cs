@@ -101,7 +101,6 @@ app.UseHttpsRedirection();
 // Custom exception middleware
 app.UseMiddleware<ExceptionMiddleware>();
 
-
 // Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
@@ -115,3 +114,5 @@ using (var scope = app.Services.CreateScope())
     await DataInitializer.SeedData(dbContext);
 }
 
+// ✅ THIS WAS MISSING - Start the web server!
+app.Run();
