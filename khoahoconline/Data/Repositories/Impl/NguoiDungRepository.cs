@@ -12,7 +12,10 @@ namespace khoahoconline.Data.Repositories.Impl
         }
         public async Task<NguoiDung?> GetByEmailAsync(string email)
         {
-            return await _dbSet.AsNoTracking().Include(nguoiDung => nguoiDung.IdvaiTroNavigation).FirstOrDefaultAsync(nguoiDung => nguoiDung.Email == email);
+            return await _dbSet.AsNoTracking()
+                .Include(nguoiDung => nguoiDung.NguoiDungVaiTros)
+                    .ThenInclude(ndvt => ndvt.IdVaiTroNavigation)
+                .FirstOrDefaultAsync(nguoiDung => nguoiDung.Email == email);
         }
 
         public async Task<PagedResult<NguoiDung>> GetPagedListAsync(int pageNumber, int pageSize, bool active, string? searchTerm = null)
@@ -29,10 +32,11 @@ namespace khoahoconline.Data.Repositories.Impl
                     nguoiDung.Email!.ToLower().Contains(searchTerm));
             }
 
-            var totalAmount  = await query.CountAsync();
+            var totalAmount = await query.CountAsync();
 
             var items = await query.AsNoTracking()
-                .Include(nguoiDung => nguoiDung.IdvaiTroNavigation)
+                .Include(nguoiDung => nguoiDung.NguoiDungVaiTros)
+                    .ThenInclude(ndvt => ndvt.IdVaiTroNavigation)
                 .OrderBy(nguoiDung => nguoiDung.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)

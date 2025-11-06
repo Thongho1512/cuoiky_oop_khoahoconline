@@ -26,7 +26,7 @@ namespace khoahoconline.Services.Impl
             _configuration = configuration;
         }
 
-        
+
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
             _logger.LogInformation("get user's information");
@@ -48,7 +48,7 @@ namespace khoahoconline.Services.Impl
                 IdNguoiDung = nguoiDung.Id,
                 NgayTao = DateTime.Now,
                 NgayHetHan = DateTime.Now.AddDays(double.Parse(_configuration["Jwt:RefreshTokenExpirationDays"]!)),
-                
+
             };
 
             await _unitOfWork.RefreshTokenRepository.CreateAsync(refreshTokenEntity);
@@ -65,37 +65,45 @@ namespace khoahoconline.Services.Impl
         public async Task LogoutAsync(string request)
         {
             var token = await _unitOfWork.RefreshTokenRepository.GetByTokenAsync(request);
-            if(token == null)
+            if (token == null)
             {
                 throw new NotFoundException("Refresh token không hợp lệ.");
             }
-            if(token.ConHieuLuc == true)
+
+            // Check if token is still valid (not revoked and not expired)
+            bool isValid = token.NgayThuHoi == null && token.NgayHetHan > DateTime.Now;
+
+            if (isValid)
             {
                 token.NgayThuHoi = DateTime.Now;
                 await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Thu hồi refresh token thành công.");
             }
-            
+
         }
 
         public async Task<LoginResponse> RefreshTokenAsync(string request)
         {
             var token = await _unitOfWork.RefreshTokenRepository.GetByTokenAsync(request);
-            if(token == null)
+            if (token == null)
             {
                 throw new NotFoundException("Refresh token không hợp lệ.");
             }
-            if(token.ConHieuLuc == false)
+
+            // Check if token is still valid (not revoked and not expired)
+            bool isValid = token.NgayThuHoi == null && token.NgayHetHan > DateTime.Now;
+
+            if (!isValid)
             {
                 throw new UnauthorizedException("Refresh token đã hết hạn hoặc bị thu hồi.");
             }
 
-            if(token.NgayHetHan < DateTime.Now)
+            if (token.NgayHetHan < DateTime.Now)
             {
                 throw new UnauthorizedException("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.");
             }
 
-            var nguoiDung = token.NguoiDung;
+            var nguoiDung = token.IdNguoiDungNavigation;
 
             await _unitOfWork.BeginTransactionAsync();
             var accessToken = _tokenService.GenerateAccessToken(nguoiDung!);

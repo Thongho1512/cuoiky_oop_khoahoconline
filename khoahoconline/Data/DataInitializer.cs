@@ -12,7 +12,6 @@ namespace khoahoconline.Data
             {
                 // Đảm bảo DB được tạo
                 await context.Database.MigrateAsync();
-                Console.WriteLine("✓ Database ensured created");
 
                 // create default roles
                 if (!await context.VaiTros.AnyAsync(vt => vt.TenVaiTro == "ADMIN"))
@@ -20,12 +19,16 @@ namespace khoahoconline.Data
                     await context.VaiTros.AddAsync(new VaiTro { TenVaiTro = "ADMIN", TrangThai = true });
                 }
 
-                if (!await context.VaiTros.AnyAsync(vt => vt.TenVaiTro == "USER"))
+                if (!await context.VaiTros.AnyAsync(vt => vt.TenVaiTro == "GIANGVIEN"))
                 {
-                    await context.VaiTros.AddAsync(new VaiTro { TenVaiTro = "USER", TrangThai = true });
+                    await context.VaiTros.AddAsync(new VaiTro { TenVaiTro = "GIANGVIEN", TrangThai = true });
                 }
+                if (!await context.VaiTros.AnyAsync(vt => vt.TenVaiTro == "HOCVIEN"))
+                {
+                    await context.VaiTros.AddAsync(new VaiTro { TenVaiTro = "HOCVIEN", TrangThai = true });
+                }
+
                 await context.SaveChangesAsync();
-                Console.WriteLine("✓ Roles checked/created: ADMIN, USER");
 
                 // Lấy vai trò ADMIN
                 var vaiTro = await context.VaiTros
@@ -37,29 +40,34 @@ namespace khoahoconline.Data
                     return;
                 }
 
-                // create default admin user
-                if (!await context.NguoiDungs.AnyAsync(nd => nd.IdvaiTro == vaiTro.Id))
+                // create default admin user - check if any admin exists
+                var adminExists = await context.NguoiDungVaiTros
+                    .AnyAsync(ndvt => ndvt.IdVaiTro == vaiTro.Id);
+
+                if (!adminExists)
                 {
                     var nguoiDung = new NguoiDung
                     {
-                        Email = "admin",
+                        Email = "admin@gmail.com",
                         MatKhau = PasswordHelper.HashPassword("admin123"),
                         TrangThai = true,
-                        IdvaiTro = vaiTro.Id,
                         NgayTao = DateTime.Now,
                         HoTen = "Administrator"
                     };
 
                     await context.NguoiDungs.AddAsync(nguoiDung);
                     await context.SaveChangesAsync();
-                    Console.WriteLine("✓ Admin user created");
-                    Console.WriteLine("  Username: admin");
-                    Console.WriteLine("  Password: admin123");
+
+                    // Create relationship in NguoiDungVaiTro table
+                    var nguoiDungVaiTro = new NguoiDungVaiTro
+                    {
+                        IdNguoiDung = nguoiDung.Id,
+                        IdVaiTro = vaiTro.Id
+                    };
+                    await context.NguoiDungVaiTros.AddAsync(nguoiDungVaiTro);
+                    await context.SaveChangesAsync();
                 }
 
-                Console.WriteLine("========================================");
-                Console.WriteLine("Data initialization completed!");
-                Console.WriteLine("========================================");
             }
             catch (Exception ex)
             {

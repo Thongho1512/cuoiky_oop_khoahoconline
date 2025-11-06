@@ -29,9 +29,12 @@ namespace khoahoconline.Services.Impl
 
             _logger.LogInformation($" id = {nguoiDung.Id.ToString()}");
             _logger.LogInformation($"ten dang nhap: {nguoiDung.Email}");
-            _logger.LogInformation($"ten vai tro: {nguoiDung.IdvaiTroNavigation?.TenVaiTro}");
 
-            var tenVaiTro = getTenVaiTro(nguoiDung.IdvaiTro!.Value).Result;
+            // Get role from NguoiDungVaiTros relationship
+            var vaiTroNavigation = nguoiDung.NguoiDungVaiTros?.FirstOrDefault()?.IdVaiTroNavigation;
+            var tenVaiTro = vaiTroNavigation?.TenVaiTro ?? "USER";
+
+            _logger.LogInformation($"ten vai tro: {tenVaiTro}");
 
             var claims = new[]
             {
@@ -49,12 +52,6 @@ namespace khoahoconline.Services.Impl
              );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        private  async Task<string> getTenVaiTro(int idVaiTro)
-        {
-            var vaiTro = await _unitOfWork.VaiTroRepository.GetByIdAsync(idVaiTro);
-            return vaiTro!.TenVaiTro!;
         }
 
         public string GenerateRefreshToken()

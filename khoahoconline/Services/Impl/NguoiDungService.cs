@@ -13,7 +13,7 @@ namespace khoahoconline.Services.Impl
         private readonly ILogger<NguoiDungService> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        
+
 
         public NguoiDungService(IUnitOfWork unitOfWork, ILogger<NguoiDungService> logger, IMapper mapper)
         {
@@ -27,12 +27,31 @@ namespace khoahoconline.Services.Impl
             var entity = _mapper.Map<NguoiDung>(dto);
             var role = await _unitOfWork.VaiTroRepository.GetByTenVaiTroAsync("USER");
 
-            entity.NgayTao = DateOnly.FromDateTime(DateTime.Now);
+            entity.NgayTao = DateTime.Now;
             entity.TrangThai = true;
             entity.MatKhau = PasswordHelper.HashPassword(dto.MatKhau!);
-            entity.IdvaiTro = role!.Id;
+
             await _unitOfWork.NguoiDungRepository.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
+
+            // Create relationship in NguoiDungVaiTro table
+            var nguoiDungVaiTro = new NguoiDungVaiTro
+            {
+                IdNguoiDung = entity.Id,
+                IdVaiTro = role!.Id
+            };
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+
             var result = _mapper.Map<NguoiDungDto>(entity);
             return result;
         }
@@ -70,7 +89,7 @@ namespace khoahoconline.Services.Impl
         {
             _logger.LogInformation($"Soft delete by id: {id}");
             var entity = await _unitOfWork.NguoiDungRepository.GetByIdAsync(id);
-            if(entity == null)
+            if (entity == null)
             {
                 throw new NotFoundException("Không tìm thấy người dùng.");
             }
