@@ -3,23 +3,17 @@ using System.Collections.Generic;
 
 namespace khoahoconline.Data.Entities;
 
-public partial class BaiGiang
+public partial class Chuong
 {
     public int Id { get; set; }
 
-    public int? IdChuong { get; set; }
+    public int? IdKhoaHoc { get; set; }
 
-    public string? TieuDe { get; set; }
+    public string? TenChuong { get; set; }
 
     public string? MoTa { get; set; }
 
-    public string? VideoUrl { get; set; }
-
-    public int? ThoiLuong { get; set; }
-
     public int? ThuTu { get; set; }
-
-    public bool? XemThuMienPhi { get; set; }
 
     public bool? TrangThai { get; set; }
 
@@ -27,5 +21,7 @@ public partial class BaiGiang
 
     public DateTime? NgayCapNhat { get; set; }
 
-    public virtual Chuong? IdChuongNavigation { get; set; }
+    public virtual ICollection<BaiGiang> BaiGiangs { get; set; } = new List<BaiGiang>();
+
+    public virtual KhoaHoc? IdKhoaHocNavigation { get; set; }
 }
