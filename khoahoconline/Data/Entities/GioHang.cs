@@ -1,29 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace khoahoconline.Data.Entities;
 
+[Table("GioHang")]
+[Index("IdNguoiDung", Name = "UQ__GioHang__FEE82D41A1A93C8C", IsUnique = true)]
 public partial class GioHang
 {
+    [Key]
     public int Id { get; set; }
 
-    public int? IdHocVien { get; set; }
+    public int IdNguoiDung { get; set; }
 
-    public decimal? TongTienGoc { get; set; }
-
-    public decimal? PhanTramGiam { get; set; }
-
-    public decimal? TienGiamVoucher { get; set; }
-
-    public decimal? TongTienThanhToan { get; set; }
-
-    public int? SoLuongKhoaHoc { get; set; }
-
+    [Column(TypeName = "datetime")]
     public DateTime? NgayTao { get; set; }
 
+    [Column(TypeName = "datetime")]
     public DateTime? NgayCapNhat { get; set; }
 
+    [InverseProperty("IdGioHangNavigation")]
     public virtual ICollection<ChiTietGioHang> ChiTietGioHangs { get; set; } = new List<ChiTietGioHang>();
 
-    public virtual NguoiDung? IdHocVienNavigation { get; set; }
+    [ForeignKey("IdNguoiDung")]
+    [InverseProperty("GioHang")]
+    public virtual NguoiDung IdNguoiDungNavigation { get; set; } = null!;
 }

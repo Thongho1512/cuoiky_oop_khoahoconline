@@ -1,37 +1,44 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace khoahoconline.Data.Entities;
 
+[Table("DonHang")]
 public partial class DonHang
 {
+    [Key]
     public int Id { get; set; }
 
-    public int? IdHocVien { get; set; }
+    public int IdNguoiDung { get; set; }
 
-    public int? IdVoucher { get; set; }
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal TongTien { get; set; }
 
-    public decimal? TongTienGoc { get; set; }
-
+    [Column(TypeName = "decimal(18, 2)")]
     public decimal? TienGiam { get; set; }
 
-    public decimal? TongTienThanhToan { get; set; }
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal TongTienThanhToan { get; set; }
 
-    public string? PhuongThucThanhToan { get; set; }
+    [StringLength(50)]
+    public string TrangThaiDonHang { get; set; } = null!;
 
-    public string? TrangThaiThanhToan { get; set; }
-
+    [Column(TypeName = "datetime")]
     public DateTime? NgayThanhToan { get; set; }
 
+    [StringLength(500)]
     public string? GhiChu { get; set; }
 
-    public virtual ICollection<ChiTietDonHang> ChiTietDonHangs { get; set; } = new List<ChiTietDonHang>();
+    [InverseProperty("IdDonHangNavigation")]
+    public virtual ICollection<ChiTietChiaSeDoanhThu> ChiTietChiaSeDoanhThus { get; set; } = new List<ChiTietChiaSeDoanhThu>();
 
-    public virtual ICollection<ChiaSeLuanNhuan> ChiaSeLuanNhuans { get; set; } = new List<ChiaSeLuanNhuan>();
-
+    [InverseProperty("IdDonHangNavigation")]
     public virtual ICollection<DangKyKhoaHoc> DangKyKhoaHocs { get; set; } = new List<DangKyKhoaHoc>();
 
-    public virtual NguoiDung? IdHocVienNavigation { get; set; }
-
-    public virtual Voucher? IdVoucherNavigation { get; set; }
+    [ForeignKey("IdNguoiDung")]
+    [InverseProperty("DonHangs")]
+    public virtual NguoiDung IdNguoiDungNavigation { get; set; } = null!;
 }
